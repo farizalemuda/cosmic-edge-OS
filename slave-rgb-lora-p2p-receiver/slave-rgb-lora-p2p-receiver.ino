@@ -9,6 +9,7 @@
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
+#include "ArduinoJson.h"
 
 //define the pins used by the transceiver module
 #define LORA_AURORA_V2_NSS  15
@@ -57,6 +58,11 @@ void setup() {
 }
 
 void loop() {
+  int R=0;
+  int G=0;
+  int B=0;
+  DynamicJsonDocument doc(1024);
+
   // try to parse packet
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
@@ -67,12 +73,25 @@ void loop() {
     while (LoRa.available()) {
       String LoRaData = LoRa.readString();
       Serial.print(LoRaData); 
+
+      
+      deserializeJson(doc, LoRaData);
+
+      
+      //serializeJsonPretty(doc, Serial);
+      
+
+      Serial.print("nilai R: ");
+      Serial.println(R);
     }
 
+    R = doc["R"];
+    G = doc["G"];
+    B = doc["B"];
+    
     // print RSSI of packet
     Serial.print("' with RSSI ");
     Serial.println(LoRa.packetRssi());
-
     pixels.clear(); // Set all pixel colors to 'off'
 
     // The first NeoPixel in a strand is #0, second is 1, all the way up
@@ -81,7 +100,8 @@ void loop() {
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       // Here we're using a moderately bright green color:
-      pixels.setPixelColor(i, pixels.Color(random(0,255), random(0,255), random(0,255)));
+      //pixels.setPixelColor(i, pixels.Color(random(0,255), random(0,255), random(0,255)));
+      pixels.setPixelColor(i, pixels.Color(R, G, B));
 
       pixels.show();   // Send the updated pixel colors to the hardware.
 
